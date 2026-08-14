@@ -1,3 +1,4 @@
+// v2.1 - force rebuild
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { CartProvider } from './context/CartContext';
