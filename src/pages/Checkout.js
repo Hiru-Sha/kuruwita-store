@@ -42,7 +42,22 @@ export default function Checkout() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed');
       clearCart();
-      navigate(`/success?order=${data.order_number}`, { state: { order: data } });
+      // Pass full order data to Success page for WhatsApp notification + summary
+      navigate(`/success?order=${data.order_number}`, {
+        state: {
+          order: {
+            ...data,
+            customer_name:    form.name,
+            customer_phone:   form.phone,
+            customer_address: form.address,
+            delivery_type:    form.delivery,
+            payment_method:   form.payment,
+            notes:            form.notes,
+            items:            cart.map(i=>({ name:i.name, qty:i.qty, price:i.price })),
+            total_amount:     grandTotal,
+          }
+        }
+      });
     } catch(e) { setError(e.message); }
     finally { setPlacing(false); }
   };

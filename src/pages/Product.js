@@ -15,6 +15,8 @@ export default function Product() {
   const [loading, setLoading] = useState(true);
   const [qty,     setQty]     = useState(1);
   const [added,   setAdded]   = useState(false);
+  const [zoomed,  setZoomed]  = useState(false);
+  const [zoomPos, setZoomPos] = useState({ x:50, y:50 });
 
   useEffect(() => {
     setLoading(true); window.scrollTo(0, 0);
@@ -74,15 +76,39 @@ export default function Product() {
 
           {/* Image */}
           <div>
-            <div style={{ background: '#0f0f0f', border: '1px solid rgba(255,255,255,.06)', aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', position: 'relative' }}>
-              {product.image_url
-                ? <img src={product.image_url} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'contain', padding: 40 }}/>
-                : <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 24, color: 'rgba(201,168,76,.3)' }}>No Image</div>
-              }
+            <div
+              style={{ background: '#0f0f0f', border: '1px solid rgba(255,255,255,.06)', aspectRatio: '1',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
+                position: 'relative', cursor: zoomed ? 'zoom-out' : 'zoom-in' }}
+              onClick={() => setZoomed(z => !z)}
+              onMouseMove={e => {
+                if (!zoomed) return;
+                const rect = e.currentTarget.getBoundingClientRect();
+                const x = Math.round(((e.clientX - rect.left) / rect.width)  * 100);
+                const y = Math.round(((e.clientY - rect.top)  / rect.height) * 100);
+                setZoomPos({ x, y });
+              }}
+              onMouseLeave={() => { if (zoomed) setZoomed(false); }}>
+              {product.image_url ? (
+                <img src={product.image_url} alt={product.name}
+                  style={{ width: '100%', height: '100%', objectFit: 'contain', padding: zoomed ? 0 : 40,
+                    transform: zoomed ? 'scale(2.5)' : 'scale(1)',
+                    transformOrigin: zoomed ? `${zoomPos.x}% ${zoomPos.y}%` : 'center',
+                    transition: zoomed ? 'none' : 'transform .3s ease',
+                    userSelect: 'none', pointerEvents: 'none' }}/>
+              ) : (
+                <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 24, color: 'rgba(201,168,76,.3)' }}>No Image</div>
+              )}
               {/* Corner accents */}
               {[['top:16px','left:16px','borderTop,borderLeft'],['top:16px','right:16px','borderTop,borderRight'],['bottom:16px','left:16px','borderBottom,borderLeft'],['bottom:16px','right:16px','borderBottom,borderRight']].map(([t, s, b], i) => (
                 <div key={i} style={{ position: 'absolute', [t.split(':')[0]]: t.split(':')[1], [s.split(':')[0]]: s.split(':')[1], width: 24, height: 24, borderColor: 'rgba(201,168,76,.25)', borderStyle: 'solid', borderWidth: 0, ...Object.fromEntries(b.split(',').map(side => [`border${side.replace('border','')}Width`, '1px'])) }}/>
               ))}
+              {/* Zoom hint */}
+              {!zoomed && product.image_url && (
+                <div style={{ position:'absolute', bottom:12, right:12, fontSize:9, letterSpacing:'2px', textTransform:'uppercase', color:'rgba(201,168,76,.5)', background:'rgba(0,0,0,.6)', padding:'4px 10px', pointerEvents:'none' }}>
+                  🔍 Click to zoom
+                </div>
+              )}
             </div>
           </div>
 
